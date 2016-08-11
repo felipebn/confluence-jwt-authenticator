@@ -185,7 +185,7 @@ public class CustomJWTConfluenceAuthenticatorTest{
 	
 	private void initializeAuthenticatorWithSigningKeyParameter(String signingKey){
 		Map<String, String> params = new HashMap<String, String>();		
-		params.put(CustomJWTConfluenceAuthenticator.JWT_SIGNING_KEY_PARAM, signingKey);
+		params.put(CustomJWTConfluenceAuthenticator.JWT_PLAINTEXT_SIGNING_KEY_PARAM, signingKey);
 		customJWTConfluenceAuthenticator.init(params, Mockito.mock(SecurityConfig.class,Mockito.RETURNS_DEEP_STUBS));		
 	}
 	

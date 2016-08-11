@@ -39,7 +39,7 @@ public class CustomJWTConfluenceAuthenticator extends ConfluenceAuthenticator{
 	/**
 	 * This init param will be the signing key to validate the JWT.
 	 */
-	protected static final String JWT_SIGNING_KEY_PARAM = "jwt-signing-key";
+	protected static final String JWT_PLAINTEXT_SIGNING_KEY_PARAM = "com.github.felipebn.confluence.authentication.jwt.plaintext-signing-key";
 	/**
 	 * This request param will carry the JWT with claims for authentication
 	 */
@@ -49,9 +49,9 @@ public class CustomJWTConfluenceAuthenticator extends ConfluenceAuthenticator{
 
 	@Override
 	public void init(Map<String, String> params, SecurityConfig config) {
-		this.jwtSigningKey = params.get(JWT_SIGNING_KEY_PARAM);
+		this.jwtSigningKey = params.get(JWT_PLAINTEXT_SIGNING_KEY_PARAM);
 		if( StringUtils.isBlank(this.jwtSigningKey) ){
-			throw new IllegalArgumentException(String.format("You need to setup the '%s' init param on Confluence's 'seraph-config.xml' file!",JWT_SIGNING_KEY_PARAM));
+			throw new IllegalArgumentException(String.format("You need to setup the '%s' init param on Confluence's 'seraph-config.xml' file!",JWT_PLAINTEXT_SIGNING_KEY_PARAM));
 		}
 		super.init(params, config);
 	}
