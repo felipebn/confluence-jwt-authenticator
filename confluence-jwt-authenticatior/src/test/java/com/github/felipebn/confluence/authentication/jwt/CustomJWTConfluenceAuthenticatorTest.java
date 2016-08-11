@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
+import com.atlassian.confluence.user.ConfluenceUser;
 import com.atlassian.seraph.config.SecurityConfig;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -109,11 +110,11 @@ public class CustomJWTConfluenceAuthenticatorTest{
 		CustomJWTConfluenceAuthenticator authenticator = new CustomJWTConfluenceAuthenticator(){
 			private static final long serialVersionUID = 1L;
 			@Override
-			protected Principal getUser(String uid) {
+			protected ConfluenceUser getUser(String uid) {
 				if(uid.equals(username)){
 					return null;
 				}else{
-					return Mockito.mock(Principal.class);	
+					return Mockito.mock(ConfluenceUser.class);	
 				}
 			}
 		};
@@ -145,7 +146,7 @@ public class CustomJWTConfluenceAuthenticatorTest{
 
 	@Test
 	public void shouldCorrectlyAuthenticateTheUserDefinedInsideTheClaim(){
-		final Principal expectedUser = Mockito.mock(Principal.class);
+		final ConfluenceUser expectedUser = Mockito.mock(ConfluenceUser.class);
 		final String username = "THEUSER";
 		final String signingKey = "the-super-secure-signing-key";
 		final String validJwtToken = Jwts.builder()
@@ -167,7 +168,7 @@ public class CustomJWTConfluenceAuthenticatorTest{
 		customJWTConfluenceAuthenticator = new CustomJWTConfluenceAuthenticator(){
 			private static final long serialVersionUID = 1L;
 			@Override
-			protected Principal getUser(String uid) {
+			protected ConfluenceUser getUser(String uid) {
 				if(uid.equals(username)){
 					return expectedUser;
 				}else{
