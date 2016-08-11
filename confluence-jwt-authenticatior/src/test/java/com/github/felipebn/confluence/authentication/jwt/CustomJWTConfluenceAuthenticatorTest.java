@@ -1,4 +1,4 @@
-package br.com.duxus.confluence.authentication.jwt;
+package com.github.felipebn.confluence.authentication.jwt;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

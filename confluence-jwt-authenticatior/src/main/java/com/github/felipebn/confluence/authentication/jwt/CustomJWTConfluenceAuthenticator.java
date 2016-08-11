@@ -1,4 +1,4 @@
-package br.com.duxus.confluence.authentication.jwt;
+package com.github.felipebn.confluence.authentication.jwt;
 
 import java.security.Principal;
 import java.util.Map;
