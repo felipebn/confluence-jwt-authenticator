@@ -73,5 +73,6 @@ To test if everything is working as expected do the following:
 After installing the authenticator and validating that the authentication works, all you need to do is:
 
 - Generate a JWT with a `username` Claim, a `exp` Claim (optional but very recommended) and sign it with your Secret key
-- Include the `JWT_TOKEN` on any URL pointing to your confluence installation
+	- **I strongly suggest to use https://github.com/jwtk/jjwt for creating tokens with Java**
+- Include the `JWT_TOKEN` on any URL pointing to your Confluence installation
 - Redirect to the URL or share it with anyone
