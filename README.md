@@ -61,12 +61,12 @@ To test if everything is working as expected do the following:
 - Set the algorithm to `HS256`
 - Click on `Create Signed JWT`
 - Copy the JWT
-- Go to your Confluence URL adding the JWT to it, should be something like 
+- Add the `JWT_TOKEN` parameter to your Confluence URL with the JWT you just copied, should be something like
 
 	```
 	http://myconfluenceinstallation/?JWT_TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFfdmFsaWRfY29uZmx1ZW5jZV91c2VybmFtZSJ9.cl9-d8I_DESOxqVwMg5oN2rXD_anATRemDaz9RcwRDQ
 	```
-- The user you defined in the claim should be authenticated
+- Access the URL and the user you defined in the claim should be authenticated
 	
 ## Usage
 
