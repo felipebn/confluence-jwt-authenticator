@@ -49,7 +49,7 @@ To install this authenticator follow the steps below:
 	- Needless to say that you should replace `YOUR_SUPER_SECRET_KEY_AS_PLAINTEXT` with a personalized hard to find key
 - Restart confluence
 
-## Testing
+### Testing
 
 To test if everything is working as expected do the following:
 
@@ -68,4 +68,10 @@ To test if everything is working as expected do the following:
 	```
 - The user you defined in the claim should be authenticated
 	
+## Usage
 
+After installing the authenticator and validating that the authentication works, all you need to do is:
+
+- Generate a JWT with a `username` Claim, a `exp` Claim (optional but very recommended) and sign it with your Secret key
+- Include the `JWT_TOKEN` on any URL pointing to your confluence installation
+- Redirect to the URL or share it with anyone
