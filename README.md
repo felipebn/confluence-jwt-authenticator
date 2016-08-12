@@ -55,6 +55,7 @@ To test if everything is working as expected do the following:
 
 - Go to http://jwtbuilder.jamiekurtz.com/
 - Clear all Standard JWT Claims
+- Clear all Additional JWT Claims
 - Add the `username` claim setting it's value to an existing username in Confluence
 - Set the key to whatever you have set on the `init-param`
 - Set the algorithm to `HS256`
