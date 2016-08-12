@@ -8,6 +8,10 @@ This authenticator expects the following JWT structure to be signed then passed 
 
 If the signature is valid then the user will be authenticated.
 
+This implementation follows the JWT spec, so you can use other algorithms or include the `nbf` (Not Before) or `exp` (Expiration) claims on your payload, they will be considered for token validation.
+
+Actually you can include anything inside the claims, the user will be authenticated with the `username` claim.
+
 ### JWS Header
 
 ```
@@ -37,10 +41,10 @@ To install this authenticator follow the steps below:
 	```
 	<authenticator class="com.github.felipebn.confluence.authentication.jwt.CustomJWTConfluenceAuthenticator">
 		<init-param>
-        		<param-name>com.github.felipebn.confluence.authentication.jwt.plaintext-signing-key</param-name>
-        		<param-value>YOUR_SUPER_SECRET_KEY_AS_PLAINTEXT</param-value>
-    		</init-param>
-    	</authenticator>
+			<param-name>com.github.felipebn.confluence.authentication.jwt.plaintext-signing-key</param-name>
+			<param-value>YOUR_SUPER_SECRET_KEY_AS_PLAINTEXT</param-value>
+		</init-param>
+	</authenticator>
 	```
 	- Needless to say that you should replace `YOUR_SUPER_SECRET_KEY_AS_PLAINTEXT` with a personalized hard to find key
 - Restart confluence
@@ -51,7 +55,7 @@ To test if everything is working as expected do the following:
 
 - Go to http://jwtbuilder.jamiekurtz.com/
 - Clear all Standard JWT Claims
-- Add the `username` claim setting it's value to a existing username in Confluence
+- Add the `username` claim setting it's value to an existing username in Confluence
 - Set the key to whatever you have set on the `init-param`
 - Set the algorithm to `HS256`
 - Click on `Create Signed JWT`
