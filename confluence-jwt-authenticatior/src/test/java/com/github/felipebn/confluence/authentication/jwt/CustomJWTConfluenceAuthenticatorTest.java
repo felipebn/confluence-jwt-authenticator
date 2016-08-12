@@ -5,23 +5,27 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.security.Principal;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.Priority;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import com.atlassian.confluence.user.ConfluenceUser;
+import com.atlassian.seraph.auth.DefaultAuthenticator;
 import com.atlassian.seraph.config.SecurityConfig;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -31,13 +35,30 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 @RunWith(DataProviderRunner.class)
 public class CustomJWTConfluenceAuthenticatorTest{
+	private static final String VALID_USERNAME = "thetesteruser"; 
+	private static final ConfluenceUser VALID_CONFLUENCE_USER = Mockito.mock(ConfluenceUser.class);
 	
-	private CustomJWTConfluenceAuthenticator customJWTConfluenceAuthenticator = new CustomJWTConfluenceAuthenticator();
+	/**
+	 * An Authenticator with one valid username to be expected
+	 */
+	private CustomJWTConfluenceAuthenticator customJWTConfluenceAuthenticator = new CustomJWTConfluenceAuthenticator(){
+		private static final long serialVersionUID = 1L;
+
+		protected ConfluenceUser getUser(String uid) {
+			if(uid.equals(VALID_USERNAME)){
+				return VALID_CONFLUENCE_USER;
+			}else{
+				return null;	
+			}
+		};
+	};
+	
 	private HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
 	private HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-	
+	private HttpSession session = Mockito.mock(HttpSession.class);
 	@BeforeClass
 	public static void setup() {
+		//Setup log4j
 		Logger rootLogger = Logger.getRootLogger();
 		rootLogger.removeAllAppenders();
 		rootLogger.addAppender(new ConsoleAppender(new PatternLayout("%d [%p|%c|%C{1}] %m%n")){
@@ -47,6 +68,12 @@ public class CustomJWTConfluenceAuthenticatorTest{
 				return Priority.FATAL;
 			}
 		});
+	}
+	
+	@Before
+	public void setupSession(){
+		//Setup a mock session on the request
+		Mockito.when(request.getSession()).thenReturn(session);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
@@ -103,24 +130,8 @@ public class CustomJWTConfluenceAuthenticatorTest{
 
 		Mockito.when(request.getParameter(CustomJWTConfluenceAuthenticator.JWT_TOKEN_REQUEST_PARAM)).thenReturn(validJwtToken);
 		
-		/*
-		 * A mock authenticator which will return null if the username is the same as informed 
-		 * inside the claim.
-		 */
-		CustomJWTConfluenceAuthenticator authenticator = new CustomJWTConfluenceAuthenticator(){
-			private static final long serialVersionUID = 1L;
-			@Override
-			protected ConfluenceUser getUser(String uid) {
-				if(uid.equals(username)){
-					return null;
-				}else{
-					return Mockito.mock(ConfluenceUser.class);	
-				}
-			}
-		};
-		
 		//We expect the user to be null as the token doesn't contains the username info inside the claim
-		assertNull(authenticator.getUser(request, response));
+		assertNull(customJWTConfluenceAuthenticator.getUser(request, response));
 	}
 
 	@Test
@@ -146,12 +157,10 @@ public class CustomJWTConfluenceAuthenticatorTest{
 
 	@Test
 	public void shouldCorrectlyAuthenticateTheUserDefinedInsideTheClaim(){
-		final ConfluenceUser expectedUser = Mockito.mock(ConfluenceUser.class);
-		final String username = "THEUSER";
 		final String signingKey = "the-super-secure-signing-key";
 		final String validJwtToken = Jwts.builder()
 										.setHeaderParam("typ", "JWT")
-										.claim("username", username)
+										.claim("username", VALID_USERNAME)
 										.signWith(SignatureAlgorithm.HS256, getBase64EncodedKey(signingKey))
 										.compact();
 		System.out.println(validJwtToken);
@@ -160,29 +169,33 @@ public class CustomJWTConfluenceAuthenticatorTest{
 
 		Mockito.when(request.getParameter(CustomJWTConfluenceAuthenticator.JWT_TOKEN_REQUEST_PARAM)).thenReturn(validJwtToken);
 
-		/*
-		 * Replaces the authenticator with a mock authenticator which 
-		 * will return the expected Principal IF the username is the same
-		 * as it expects.
-		 */
-		customJWTConfluenceAuthenticator = new CustomJWTConfluenceAuthenticator(){
-			private static final long serialVersionUID = 1L;
-			@Override
-			protected ConfluenceUser getUser(String uid) {
-				if(uid.equals(username)){
-					return expectedUser;
-				}else{
-					return null;
-				}
-			}
-		};
-		
 		//Initializes after replacing the authenticator
 		initializeAuthenticatorWithSigningKeyParameter(signingKey);
 		
-		assertEquals(expectedUser,customJWTConfluenceAuthenticator.getUser(request, response));
+		assertEquals(VALID_CONFLUENCE_USER,customJWTConfluenceAuthenticator.getUser(request, response));
+		
+		//Asserts that the user was registered on HttpSession
+		Mockito.verify(session,Mockito.times(1)).setAttribute(DefaultAuthenticator.LOGGED_IN_KEY, VALID_CONFLUENCE_USER);
+		Mockito.verify(session,Mockito.times(1)).setAttribute(DefaultAuthenticator.LOGGED_OUT_KEY, null);
 	}
 
+	@Test
+	public void shouldNotAuthenticateWhenTheTokenIsExpired(){
+		final String signingKey = "the-super-secure-signing-key";
+		final String expiredJwtToken = Jwts.builder()
+										.setHeaderParam("typ", "JWT")
+										.claim("username", "test")
+										.setExpiration(new Date(0L))
+										.signWith(SignatureAlgorithm.HS256, getBase64EncodedKey(signingKey))
+										.compact();
+		System.out.println(expiredJwtToken);
+		
+		initializeAuthenticatorWithSigningKeyParameter(signingKey);
+
+		Mockito.when(request.getParameter(CustomJWTConfluenceAuthenticator.JWT_TOKEN_REQUEST_PARAM)).thenReturn(expiredJwtToken);
+
+		customJWTConfluenceAuthenticator.getUser(request, response);
+	}
 	
 	private void initializeAuthenticatorWithSigningKeyParameter(String signingKey){
 		Map<String, String> params = new HashMap<String, String>();		

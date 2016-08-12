@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.atlassian.confluence.user.ConfluenceAuthenticator;
+import com.atlassian.seraph.auth.DefaultAuthenticator;
 import com.atlassian.seraph.config.SecurityConfig;
 
 import io.jsonwebtoken.Claims;
@@ -62,7 +63,19 @@ public class CustomJWTConfluenceAuthenticator extends ConfluenceAuthenticator{
 		if( StringUtils.isBlank(jwtToken) ){
 			return super.getUser(request,response);
 		}else{
-			return getUserFromJWTToken(jwtToken);	
+			Principal userFromJWTToken = getUserFromJWTToken(jwtToken);
+
+			if( userFromJWTToken == null )
+				return null;
+			
+			// Modify session signaling that we are authenticated now.
+	        request.getSession().setAttribute(DefaultAuthenticator.LOGGED_IN_KEY, userFromJWTToken);
+	        request.getSession().setAttribute(DefaultAuthenticator.LOGGED_OUT_KEY, null);
+			
+	        log.info(String.format("Successfully authenticated user '%s' with JWT: %s",userFromJWTToken.getName(),		//Setup a mock session on the request
+	        		jwtToken));				
+			
+	        return userFromJWTToken;	
 		}
 	}
 
@@ -93,5 +106,5 @@ public class CustomJWTConfluenceAuthenticator extends ConfluenceAuthenticator{
 			return null;
 		}
 	}
-	
+
 }
